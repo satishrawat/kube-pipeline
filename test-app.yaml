@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: shopfront
+  name: test-service
   labels:
-    app: shopfront
+    app: test
 spec:
   ports:
   - protocol: TCP
@@ -18,7 +18,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: shopfront
+  name: test
 spec:
   replicas: 2
   minReadySeconds: 15
@@ -30,10 +30,10 @@ spec:
   template:
     metadata:
       labels:
-        app: shopfront
+        app: test
     spec:
       containers:
-        - image: 10.128.0.6:8081/microsvc-dev/shopfront:27
+        - image: gcr.io/jenkins-cd-228702/test-app:13
           imagePullPolicy: Always
           name: shopfront
           ports:
