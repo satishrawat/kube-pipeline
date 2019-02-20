@@ -8,7 +8,7 @@ spec:
   ports:
   - protocol: TCP
     port: 80
-    targetPort: 8010
+    targetPort: 8080
   selector:
     app: test
   type: LoadBalancer
@@ -37,4 +37,4 @@ spec:
           imagePullPolicy: Always
           name: test
           ports:
-            - containerPort: 8010
+            - containerPort: 8080
