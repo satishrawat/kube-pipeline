@@ -35,6 +35,6 @@ spec:
       containers:
         - image: gcr.io/jenkins-cd-228702/test-app:13
           imagePullPolicy: Always
-          name: shopfront
+          name: test
           ports:
             - containerPort: 8010
