@@ -10,7 +10,7 @@ spec:
     port: 80
     targetPort: 8010
   selector:
-    app: shopfront
+    app: test
   type: LoadBalancer
 
 
