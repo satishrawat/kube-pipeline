@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopfront
+  labels:
+    app: shopfront
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8010
+  selector:
+    app: shopfront
+  type: LoadBalancer
+
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: shopfront
+spec:
+  replicas: 2
+  minReadySeconds: 15
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: shopfront
+    spec:
+      containers:
+        - image: 10.128.0.6:8081/microsvc-dev/shopfront:27
+          imagePullPolicy: Always
+          name: shopfront
+          ports:
+            - containerPort: 8010
