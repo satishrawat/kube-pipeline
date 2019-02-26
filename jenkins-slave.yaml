@@ -4,7 +4,7 @@ metadata:
   name: jenkins-slave
 spec:
   containers:
-  - name: jnlp
+  - name: jenkins-slave
     image: satishrawat/jenkins:lts
     imagePullPolicy: IfNotPresent
     tty: true
