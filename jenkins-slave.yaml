@@ -6,6 +6,7 @@ spec:
   containers:
   - name: jenkins-slave
     image: satishrawat/jenkins:lts
+    workingDir: /var/jenkins_home
     imagePullPolicy: IfNotPresent
     tty: true
   
