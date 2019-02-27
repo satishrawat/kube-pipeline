@@ -29,7 +29,7 @@ parameters {
             
                 git branch: 'promote',
                     credentialsId: 'github',
-                    url: 'https://github.com/techmartguru/kube-pipeline'
+                    url: 'https://github.com/satishrawat/kube-pipeline'
                           
             
                        
