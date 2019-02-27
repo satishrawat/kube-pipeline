@@ -20,7 +20,7 @@ podTemplate(label: 'jenkins-slave',
   node ('jenkins-slave') {
    container('maven') {
 
-parameters {
+    parameters {
         string (defaultValue: "10", description: 'Deployment Version', name: 'version')
         choice choices: ['prod', 'dev', 'stag'], description: 'deploy environment', name: 'environment'
     }
