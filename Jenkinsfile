@@ -50,7 +50,7 @@ podTemplate(label: 'jenkins-slave',
         stage ('Connect Kubernetes Cluster ') {
             
 				    sh 'gcloud auth activate-service-account --key-file devops-224605-0466f18f3159.json'
-				    sh 'gcloud beta container clusters get-credentials ha-cluster-1 --region us-central1 --project devops-224605'
+				    sh 'gcloud container clusters get-credentials sk-cluster --zone us-central1-a --project devops-224605'
             
                 
         }
