@@ -28,7 +28,7 @@ stages {
         stage ('checkout code') {
             steps {
                 git branch: 'promote',
-                    credentialsId: 'githublogin',
+                    credentialsId: 'github',
                     url: 'https://github.com/techmartguru/kube-pipeline'
                           
             
@@ -36,8 +36,8 @@ stages {
     }
     stage ('Connect Kubernetes Cluster ') {
             steps {
-            sh 'gcloud auth activate-service-account --key-file kubernetes-project-219502-5da68b5b3690.json'
-            sh 'gcloud container clusters get-credentials kube-poc --zone us-central1-a --project kubernetes-project-219502'
+            sh 'gcloud auth activate-service-account --key-file devops-224605-0466f18f3159.json'
+            sh 'gcloud container clusters get-credentials sk-cluster --zone us-central1-a --project devops-224605'
             }
                 
         }
