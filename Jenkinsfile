@@ -42,15 +42,15 @@ podTemplate(label: 'jenkins-slave',
 		
 		stage ('Create Docker Image and push ') {
             
-				    sh 'cat jenkins-cd-228702-de2d31fc89d1.json | docker login -u _json_key --password-stdin https://gcr.io'
-					sh 'docker build -t gcr.io/jenkins-cd-228702/hello-docker:${BUILD_NUMBER} .'
-                    sh 'docker push gcr.io/jenkins-cd-228702/hello-docker:${BUILD_NUMBER}'
+				    sh 'cat devops-224605-0466f18f3159.json | docker login -u _json_key --password-stdin https://gcr.io'
+					sh 'docker build -t gcr.io/devops-224605/hello-docker:${BUILD_NUMBER} .'
+                    sh 'docker push gcr.io/devops-224605/hello-docker:${BUILD_NUMBER}'
             
         }
         stage ('Connect Kubernetes Cluster ') {
             
-				    sh 'gcloud auth activate-service-account --key-file jenkins-cd-228702-de2d31fc89d1.json'
-				    sh 'gcloud container clusters get-credentials kube-cluster --zone us-central1-a --project jenkins-cd-228702'
+				    sh 'gcloud auth activate-service-account --key-file devops-224605-0466f18f3159.json'
+				    sh 'gcloud beta container clusters get-credentials ha-cluster-1 --region us-central1 --project devops-224605'
             
                 
         }
