@@ -24,7 +24,7 @@ parameters {
         string (defaultValue: "10", description: 'Deployment Version', name: 'version')
         choice choices: ['prod', 'dev', 'stag'], description: 'deploy environment', name: 'environment'
     }
-stages {
+
         stage ('checkout code') {
             
                 git branch: 'promote',
@@ -50,7 +50,7 @@ stages {
                 
         }
     }
-	}
+	
 }
 }	
     
