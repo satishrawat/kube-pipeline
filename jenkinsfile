@@ -3,10 +3,12 @@
 		  label "kube-slave"
 			 }
 	 parameters {
-			string (defaultValue: "00", description: 'Deployment Version applicable for promote job', name: 'version')
+			choice choices: ['promote', 'rollback','build'], description: 'task to do', name: 'task'
 			choice choices: ['prod', 'dev','na', 'stag'], description: 'deploy environment for promote job', name: 'environment'
-			choice choices: ['promote','build'], description: 'task to do', name: 'task'
+			string (defaultValue: "00", description: 'Deployment Version applicable for promote job', name: 'version')
 			choice choices: ['master', 'dev'], description: 'git branchname', name: 'gitbranch'
+			
+			
 		}	
 	
 
@@ -119,6 +121,25 @@
 						
 						sh 'sed -i s/hello-docker:10/hello-docker:${version}/g test-app.yaml'
 						sh 'kubectl apply -f test-app.yaml -n ${environment}'
+						
+					}	
+					
+					}
+				}
+				stage('rollback on application') {
+				when {
+					expression { 
+						// build and push when environment is requested
+						
+						params.task == 'rollback'
+					}
+					}
+				steps {
+					
+					container(name: 'maven', shell: '/bin/bash') {
+						
+						sh 'kubectl rollout history deployment/test -n ${environment}'
+						sh 'kubectl rollout undo deployment/test -n ${environment}'
 						
 					}	
 					
