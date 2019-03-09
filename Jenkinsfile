@@ -1,66 +1,154 @@
-#!/usr/bin/groovy
+	pipeline {
+	 agent {
+		  label "kube-slave"
+			 }
+	 parameters {
+			choice choices: ['promote', 'rollback','build'], description: 'task to do', name: 'task'
+			choice choices: ['prod', 'dev','na', 'stag'], description: 'deploy environment for promote job', name: 'environment'
+			string (defaultValue: "00", description: 'Deployment Version applicable for promote job', name: 'version')
+			choice choices: ['master', 'dev'], description: 'git branchname', name: 'gitbranch'
+			
+			
+		}	
+	
 
-podTemplate(label: 'jenkins-slave', 
-  containers: [
-    containerTemplate(
-      name: 'jnlp',
-      image: 'jenkinsci/jnlp-slave:3.10-1-alpine',
-      args: '${computer.jnlpmac} ${computer.name}'
-    ),
-    containerTemplate(
-      name: 'maven',
-      image: 'satishrawat/jenkins:8',
-      command: 'cat',
-      ttyEnabled: true
-    ),
-  ],
-  volumes: [ 
-    hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'), 
-  ]
-)
-{
-  node ('jenkins-slave') {
-   container('maven') {
 
-    stage('Clone Repo') { 
-		git branch: 'dev',
-                    
-                    url: 'https://github.com/satishrawat/kube-pipeline'
-      
-	   stage('Maven Package') {
-                    sh ("mvn clean package -DskipTests")
-                }
+    stages {
+
+        
+			stage ('checkout code') {
+				steps {
+					container(name: 'maven', shell: '/bin/bash') {
+						git branch: '${gitbranch}',
+						credentialsId: 'githublogin',
+						url: 'https://github.com/satishrawat/kube-pipeline'
+							  
 				
-		}
-		
-		stage ('Testing Stage') {
-            
-                sh 'echo "Hi This is testing"'
+			}               
+			}
+			}
+			stage("Build displayName for dev") {
+				when {
+					expression { 
+						// build and push when branch "dev" is requested
+						
+						params.gitbranch == 'dev'
+					}
+						
+				}
+				steps {
+					container(name: 'maven', shell: '/bin/bash') {
+						script {
+							
+							currentBuild.description = "snapshot-1.1"
+                }
+            }
+			}
+			}
+			stage("Build displayName for master") {
+				when {
+					expression { 
+						// build and push when branch "dev" is requested
+						
+						params.gitbranch == 'master'
+					}
+						
+				}
+				steps {
+					container(name: 'maven', shell: '/bin/bash') {
+						script {
+							
+							currentBuild.description = "release-1.1"
+                }
+            }
+			}
+			}
+			stage ('Connect to GKE and GCR ') {
+            steps {
+			container(name: 'maven', shell: '/bin/bash') {
+			//login on gke cluster
+            sh 'gcloud auth activate-service-account --key-file /secrets/devops-224605-571993319ea4.json'
+		    sh 'gcloud container clusters get-credentials sk-cluster --zone us-central1-a --project devops-224605'
+			//login on registry
+			sh 'cat /secrets/devops-224605-571993319ea4.json | docker login -u _json_key --password-stdin https://gcr.io'
+            }
                 
-            
-		}
-		
-		stage ('Create Docker Image and push ') {
-            
-				    sh 'cat devops-224605-0466f18f3159.json | docker login -u _json_key --password-stdin https://gcr.io'
-					sh 'docker build -t gcr.io/devops-224605/hello-docker:${BUILD_NUMBER} .'
-                    sh 'docker push gcr.io/devops-224605/hello-docker:${BUILD_NUMBER}'
-            
         }
-        stage ('Connect Kubernetes Cluster ') {
-            
-				    sh 'gcloud auth activate-service-account --key-file devops-224605-0466f18f3159.json'
-				    sh 'gcloud container clusters get-credentials sk-cluster --zone us-central1-a --project devops-224605'
-            
-                
-        }
-        stage ('Deploy the App ') {
-            
-				    sh 'sed -i s/hello-docker:10/hello-docker:${BUILD_NUMBER}/g test-app.yaml'
-				    sh 'kubectl apply -f test-app.yaml -n dev'
-				    
-            }	
-}
-}
-}
+		}	
+			stage('Compile Using Maven for dev') {
+					when {
+					expression { 
+						// build and push when branch "dev" is requested
+						params.task == 'build' 
+						
+					}
+						
+				}
+					steps {
+					container(name: 'maven', shell: '/bin/bash') {
+						
+						sh ("mvn clean package -DskipTests")
+						
+						//build and push docker image to gcr
+						sh 'docker build -t gcr.io/devops-224605/hello-docker:${BUILD_NUMBER} .'
+						sh 'docker push gcr.io/devops-224605/hello-docker:${BUILD_NUMBER}'
+						//deploy the newly created image to dev environment
+						sh 'sed -i s/hello-docker:10/hello-docker:${BUILD_NUMBER}/g test-app.yaml'
+						
+					}
+				}
+				}
+				
+			stage('Maven Package') {
+					steps {
+					container(name: 'maven', shell: '/bin/bash') {
+						sh 'echo "Hi This is testing"'
+						
+					}
+				}		
+			}
+			stage('promote the application') {
+				when {
+					expression { 
+						// build and push when environment is requested
+						
+						params.task == 'promote'
+					}
+					}
+				steps {
+					
+					container(name: 'maven', shell: '/bin/bash') {
+						
+						sh 'sed -i s/hello-docker:10/hello-docker:${version}/g test-app.yaml'
+						sh 'kubectl apply -f test-app.yaml -n ${environment}'
+						
+					}	
+					
+					}
+				}
+				stage('rollback on application') {
+				when {
+					expression { 
+						// build and push when environment is requested
+						
+						params.task == 'rollback'
+					}
+					}
+				steps {
+					
+					container(name: 'maven', shell: '/bin/bash') {
+						
+						sh 'kubectl rollout history deployment/test -n ${environment}'
+						sh 'kubectl rollout undo deployment/test -n ${environment}'
+						
+					}	
+					
+					}
+				}
+			}
+		}	
 		
+				
+					
+				
+				
